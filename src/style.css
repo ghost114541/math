@@ -1,0 +1,62 @@
+:root {
+  --bg: #f4f6f9;
+  --panel-bg: #ffffff;
+  --surface: #f8faff;
+  --surface-hover: #f0f4fc;
+  --text-main: #1f2633;
+  --text-dim: #6c7688;
+  --border: #d8dfeb;
+  --border-soft: #e4e9f3;
+  --accent: #2f67ff;
+  --accent-2: #1d9b78;
+  --accent-soft: #8cb3ff;
+}
+
+:root[data-theme='dark'] {
+  --bg: #11161e;
+  --panel-bg: #171f2c;
+  --surface: #1f2a39;
+  --surface-hover: #263348;
+  --text-main: #ecf1f8;
+  --text-dim: #9cadc5;
+  --border: #334257;
+  --border-soft: #2b3749;
+  --accent: #3f7dff;
+  --accent-2: #1db592;
+  --accent-soft: #7ea6ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Bahnschrift', 'Segoe UI Variable', 'Noto Sans SC', sans-serif;
+  background: radial-gradient(circle at 10% 5%, color-mix(in srgb, var(--accent) 14%, var(--bg)), var(--bg) 50%);
+  color: var(--text-main);
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.main-area {
+  padding: 16px;
+}
+
+@media (max-width: 960px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .main-area {
+    padding: 12px;
+  }
+}
