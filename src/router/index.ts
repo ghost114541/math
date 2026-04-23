@@ -14,5 +14,10 @@ export const router = createRouter({
       name: 'affine-3d',
       component: () => import('../views/Affine3DView.vue'),
     },
+    {
+      path: '/projection-axonometric',
+      name: 'projection-axonometric',
+      component: () => import('../views/AxonometricProjectionView.vue'),
+    },
   ],
 })

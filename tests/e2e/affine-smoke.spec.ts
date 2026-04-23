@@ -107,3 +107,27 @@ test('3D controls remain usable in narrow viewport with local-origin keyboard co
   await expect(page.getByTestId('pause-animation-button')).toBeEnabled()
   await page.getByTestId('pause-animation-button').click()
 })
+
+test('axonometric projection page supports trimetric presets, constrained angles, and SVG output', async ({ page }) => {
+  await page.goto('/#/projection-axonometric')
+  await expect(page.getByTestId('projection-axonometric-view')).toBeVisible()
+  await expect(page.getByTestId('projection-construction-note')).toContainText('first rotate around Oy, then rotate around X')
+  await expect(page.getByRole('button', { name: /Reset View/i })).toHaveCount(0)
+
+  await page.getByTestId('projection-preset-trimetric-b').click()
+  await expect(page.getByTestId('projection-angle-y')).toHaveValue('60')
+  await expect(page.getByTestId('projection-angle-x')).toHaveValue('25')
+
+  const initialMatrix = await page.getByTestId('projection-final-matrix').getAttribute('data-matrix')
+  await page.getByTestId('projection-angle-y').fill('48')
+  await page.getByTestId('projection-angle-x').fill('32')
+  await expect(page.getByTestId('projection-final-matrix')).not.toHaveAttribute('data-matrix', initialMatrix ?? '')
+  await expect(page.getByTestId('projection-svg')).toBeVisible()
+
+  await page.getByTestId('projection-preset-isometric').click()
+  await expect(page.getByTestId('projection-angle-y')).toHaveValue('45')
+  await expect(page.getByTestId('projection-angle-x')).toHaveValue('35.264')
+  await page.getByTestId('projection-preset-dimetric').click()
+  await expect(page.getByTestId('projection-angle-y')).toHaveValue('45')
+  await expect(page.getByTestId('projection-angle-x')).toHaveValue('20')
+})

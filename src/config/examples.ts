@@ -15,4 +15,11 @@ export const EXAMPLE_DEFINITIONS: ExampleDefinition[] = [
     group: '3D Transformations',
     route: '/affine-3d',
   },
+  {
+    id: 'projection-axonometric',
+    title: 'Axonometric Projections',
+    subtitle: 'Isometric, Dimetric, and Trimetric Projections',
+    group: '3D Transformations',
+    route: '/projection-axonometric',
+  },
 ]

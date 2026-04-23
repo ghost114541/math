@@ -1,4 +1,4 @@
-export type ExampleId = 'affine-2d' | 'affine-3d'
+export type ExampleId = 'affine-2d' | 'affine-3d' | 'projection-axonometric'
 export type DimensionalMode = '2d' | '3d'
 export type TransformType = 'translate' | 'rotate' | 'scale' | 'shear' | 'reflect'
 export type WireframeMode = 'auto' | 'cube' | 'sequential'

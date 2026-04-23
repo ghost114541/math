@@ -16,6 +16,7 @@
   "include": [
     "tests/**/*.ts",
     "src/lib/**/*.ts",
+    "src/config/**/*.ts",
     "src/types/**/*.ts",
     "src/composables/useAffineDemo.ts",
     "src/composables/useMockPlayback.ts"

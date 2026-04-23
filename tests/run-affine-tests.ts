@@ -4,6 +4,15 @@ import { AFFINE_SCENARIOS } from '../src/config/scenarios.js'
 import { buildWireframeEdges } from '../src/lib/wireframe.js'
 import { useAffineDemo } from '../src/composables/useAffineDemo.js'
 import type { DemoScenario, TransformItem } from '../src/types/cg.js'
+import {
+  AXONOMETRIC_PRESETS,
+  applyMatrix,
+  computeProjectionState,
+  multiplyMatrices,
+  orthographicProjectionMatrix,
+  rotationX,
+  rotationY,
+} from '../src/lib/projection.js'
 
 Object.assign(globalThis, { window: globalThis })
 
@@ -329,6 +338,61 @@ const tests: Array<{ name: string; run: () => void }> = [
 
       assert.ok(pointCloudScenario)
       assert.equal(pointCloudScenario.transforms[2]?.params, 'dx=1, dy=1.6, dz=-0.8')
+    },
+  },
+  {
+    name: 'axonometric projection composes final matrix as P * Rx * Ry',
+    run: () => {
+      const state = computeProjectionState(60, 25)
+      const expected = multiplyMatrices(orthographicProjectionMatrix(), multiplyMatrices(rotationX(25), rotationY(60)))
+
+      assert.deepEqual(roundMatrix(state.finalMatrix), roundMatrix(expected))
+    },
+  },
+  {
+    name: 'axonometric projection applies Oy rotation before X rotation',
+    run: () => {
+      const state = computeProjectionState(90, 90, [[1, 0, 0, 1]])
+
+      assert.deepEqual(roundPoints([applyMatrix(state.finalMatrix, [1, 0, 0, 1])]), [[0, 1, 0, 1]])
+      assert.deepEqual(roundPoints(state.projectedPoints), [[0, 1]])
+    },
+  },
+  {
+    name: 'isometric projection preset keeps equal axis shortening',
+    run: () => {
+      const preset = AXONOMETRIC_PRESETS.find((item) => item.id === 'isometric')
+      assert.ok(preset)
+      const state = computeProjectionState(preset.yAngle, preset.xAngle)
+      const [x, y, z] = state.axes.map((axis) => axis.shortening)
+
+      assert.ok(Math.abs((x ?? 0) - (y ?? 0)) < 0.00002)
+      assert.ok(Math.abs((y ?? 0) - (z ?? 0)) < 0.00002)
+    },
+  },
+  {
+    name: 'dimetric projection preset keeps x and z shortening equal only',
+    run: () => {
+      const preset = AXONOMETRIC_PRESETS.find((item) => item.id === 'dimetric')
+      assert.ok(preset)
+      const state = computeProjectionState(preset.yAngle, preset.xAngle)
+      const [x, y, z] = state.axes.map((axis) => axis.shortening)
+
+      assert.ok(Math.abs((x ?? 0) - (z ?? 0)) < 0.000001)
+      assert.ok(Math.abs((x ?? 0) - (y ?? 0)) > 0.05)
+    },
+  },
+  {
+    name: 'trimetric class presets keep the requested angle pairs',
+    run: () => {
+      const presets = Object.fromEntries(AXONOMETRIC_PRESETS.map((item) => [item.id, item]))
+
+      assert.equal(presets['trimetric-a']?.yAngle, 45)
+      assert.equal(presets['trimetric-a']?.xAngle, 35)
+      assert.equal(presets['trimetric-b']?.yAngle, 60)
+      assert.equal(presets['trimetric-b']?.xAngle, 25)
+      assert.equal(presets['trimetric-c']?.yAngle, 30)
+      assert.equal(presets['trimetric-c']?.xAngle, 50)
     },
   },
 ]
