@@ -13,6 +13,19 @@ import {
   rotationX,
   rotationY,
 } from '../src/lib/projection.js'
+import {
+  applyMatrix as applyPerspectiveMatrix,
+  computePerspectiveState,
+  onePointPerspectiveMatrix,
+  perspectiveDivide2d,
+} from '../src/lib/perspective.js'
+import {
+  computeModelViewState,
+  lookAtViewMatrix,
+  multiplyMatrices as multiplyModelViewMatrices,
+  translation,
+} from '../src/lib/modelView.js'
+import { classifyPoint, clipLineSegment, clipPolygon, computeClippingState } from '../src/lib/clipping.js'
 
 Object.assign(globalThis, { window: globalThis })
 
@@ -395,6 +408,84 @@ const tests: Array<{ name: string; run: () => void }> = [
       assert.equal(presets['trimetric-c']?.xAngle, 50)
     },
   },
+  {
+    name: 'one-point perspective function matches homogeneous matrix divide',
+    run: () => {
+      const state = computePerspectiveState(2, -4, 1.25, 0.5)
+      const matrixResult = perspectiveDivide2d(applyPerspectiveMatrix(onePointPerspectiveMatrix(2), [1.25, 0.5, -4, 1]))
+
+      assertAlmostEqual(state.functionPoint[0] ?? 0, matrixResult[0] ?? 0)
+      assertAlmostEqual(state.functionPoint[1] ?? 0, matrixResult[1] ?? 0)
+      assertAlmostEqual(state.matrixPoint[0] ?? 0, matrixResult[0] ?? 0)
+      assert.ok(state.viewPoint[2] < 0)
+    },
+  },
+  {
+    name: 'model view matrix composes view times model and moves camera to view origin',
+    run: () => {
+      const state = computeModelViewState(25, 0.8, -1.2, 0.6)
+      const expected = multiplyModelViewMatrices(state.viewMatrix, state.modelMatrix)
+      const cameraView = applyPerspectiveMatrix(state.viewMatrix, [...state.cameraPosition, 1])
+
+      assertAlmostMatrix(state.modelViewMatrix, expected)
+      assertAlmostArray(cameraView, [0, 0, 0, 1])
+    },
+  },
+  {
+    name: 'lookAt view matrix treats camera world transform inverse as world to view',
+    run: () => {
+      const view = lookAtViewMatrix([0, 0, 5], [0, 0, 0], [0, 1, 0])
+      const model = translation(1, 2, -3)
+      const modelView = multiplyModelViewMatrices(view, model)
+      const result = applyPerspectiveMatrix(modelView, [0, 0, 0, 1])
+
+      assertAlmostArray(result, [1, 2, -8, 1])
+    },
+  },
+  {
+    name: 'clip-space point classification uses OpenGL WebGL -w to w rule',
+    run: () => {
+      assert.equal(classifyPoint([0.2, -0.4, 0.5, 1]), 'inside')
+      assert.equal(classifyPoint([1.2, 0, 0, 1]), 'outside')
+      assert.equal(classifyPoint([0, 0, -1.2, 1]), 'outside')
+    },
+  },
+  {
+    name: 'intersecting clip-space line segment creates clipped endpoints',
+    run: () => {
+      const clipped = clipLineSegment([-2, 0, 0, 1], [0.5, 0, 0, 1])
+
+      assert.equal(clipped.length, 2)
+      assertAlmostEqual(clipped[0]?.[0] ?? 0, -1)
+      assertAlmostEqual(clipped[1]?.[0] ?? 0, 0.5)
+      assert.equal(clipped.every((point) => classifyPoint(point) === 'inside'), true)
+    },
+  },
+  {
+    name: 'intersecting clip-space triangle produces true clipped polygon vertices',
+    run: () => {
+      const clipped = clipPolygon([
+        [-1.5, -0.2, 0, 1],
+        [0.6, -0.3, 0, 1],
+        [0.2, 0.8, 0, 1],
+      ])
+
+      assert.ok(clipped.length >= 3)
+      assert.equal(clipped.every((point) => classifyPoint(point) === 'inside'), true)
+      assert.ok(clipped.some((point) => Math.abs((point[0] ?? 0) + 1) < 1e-6))
+    },
+  },
+  {
+    name: 'clipping state keeps pipeline data responsive to fov near far and offset',
+    run: () => {
+      const state = computeClippingState(62, 0.8, 6, 0.45)
+
+      assert.ok(['inside', 'outside', 'intersecting'].includes(state.triangleStatus))
+      assert.ok(state.clipTriangle.length === 3)
+      assert.ok(state.clippedTriangle.length > 0)
+      assert.equal(state.ndcTriangle.length, state.clippedTriangle.length)
+    },
+  },
 ]
 
 let failures = 0
@@ -426,4 +517,18 @@ function roundMatrix(matrix: number[][]) {
 
 function roundNumber(value: number) {
   return Math.abs(value) < 1e-6 ? 0 : Number(value.toFixed(6))
+}
+
+function assertAlmostEqual(actual: number, expected: number, epsilon = 1e-6) {
+  assert.ok(Math.abs(actual - expected) < epsilon, `Expected ${actual} to be within ${epsilon} of ${expected}`)
+}
+
+function assertAlmostArray(actual: number[], expected: number[], epsilon = 1e-6) {
+  assert.equal(actual.length, expected.length)
+  actual.forEach((value, index) => assertAlmostEqual(value, expected[index] ?? 0, epsilon))
+}
+
+function assertAlmostMatrix(actual: number[][], expected: number[][], epsilon = 1e-6) {
+  assert.equal(actual.length, expected.length)
+  actual.forEach((row, index) => assertAlmostArray(row, expected[index] ?? [], epsilon))
 }

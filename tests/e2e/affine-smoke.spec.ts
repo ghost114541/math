@@ -131,3 +131,39 @@ test('axonometric projection page supports trimetric presets, constrained angles
   await expect(page.getByTestId('projection-angle-y')).toHaveValue('45')
   await expect(page.getByTestId('projection-angle-x')).toHaveValue('20')
 })
+
+test('one-point perspective page keeps function and matrix projection synchronized', async ({ page }) => {
+  await page.goto('/#/projection-perspective')
+  await expect(page.getByTestId('perspective-one-point-view')).toBeVisible()
+  await expect(page.getByTestId('perspective-convention-note')).toContainText('z_view < 0')
+
+  const initialMatrix = await page.getByTestId('perspective-geometric-matrix').getAttribute('data-matrix')
+  await page.getByTestId('perspective-distance').fill('3')
+  await expect(page.getByTestId('perspective-geometric-matrix')).not.toHaveAttribute('data-matrix', initialMatrix ?? '')
+  await expect(page.getByTestId('perspective-svg')).toBeVisible()
+  await expect(page.getByText('Matches')).toBeVisible()
+})
+
+test('model view matrix page updates composed matrix from separated model and view controls', async ({ page }) => {
+  await page.goto('/#/model-view-matrix')
+  await expect(page.getByTestId('model-view-matrix-view')).toBeVisible()
+  await expect(page.getByTestId('model-view-definition-note')).toContainText('M_modelView = M_view * M_model')
+
+  const initialMatrix = await page.getByTestId('model-view-final-matrix').getAttribute('data-matrix')
+  await page.getByTestId('model-view-yaw').fill('60')
+  await expect(page.getByTestId('model-view-final-matrix')).not.toHaveAttribute('data-matrix', initialMatrix ?? '')
+  await expect(page.getByTestId('model-view-world-point')).toBeVisible()
+  await expect(page.getByTestId('model-view-svg')).toBeVisible()
+})
+
+test('clipping page exposes OpenGL WebGL clip-space pipeline and responsive clipped result', async ({ page }) => {
+  await page.goto('/#/clipping-3d')
+  await expect(page.getByTestId('clipping-view')).toBeVisible()
+  await expect(page.getByTestId('clipping-convention-note')).toContainText('OpenGL/WebGL')
+
+  const initialMatrix = await page.getByTestId('clipping-projection-matrix').getAttribute('data-matrix')
+  await page.getByTestId('clipping-fov').fill('80')
+  await expect(page.getByTestId('clipping-projection-matrix')).not.toHaveAttribute('data-matrix', initialMatrix ?? '')
+  await expect(page.getByTestId('clipping-vertex-count')).not.toContainText('0')
+  await expect(page.getByTestId('clipping-svg')).toBeVisible()
+})

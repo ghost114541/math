@@ -22,4 +22,25 @@ export const EXAMPLE_DEFINITIONS: ExampleDefinition[] = [
     group: '3D Transformations',
     route: '/projection-axonometric',
   },
+  {
+    id: 'projection-perspective',
+    title: 'Perspective Projection',
+    subtitle: 'One-Point Projection and Homogeneous Divide',
+    group: '3D Viewing Pipeline',
+    route: '/projection-perspective',
+  },
+  {
+    id: 'model-view-matrix',
+    title: 'ModelView Matrix',
+    subtitle: 'Model, View, and Their Composition',
+    group: '3D Viewing Pipeline',
+    route: '/model-view-matrix',
+  },
+  {
+    id: 'clipping-3d',
+    title: '3D Clipping',
+    subtitle: 'OpenGL/WebGL Clip-Space Algorithms',
+    group: '3D Viewing Pipeline',
+    route: '/clipping-3d',
+  },
 ]
