@@ -15,6 +15,13 @@ playwright-report
 test-results
 *.local
 
+# Local advisor/project handoff drafts
+advisor_delivery_materials/
+agent.md
+USER_ACCEPTANCE_GUIDE.md
+THREAD_HANDOFF_LOG.md
+FINAL_DELIVERY_PLAN.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
