@@ -70,8 +70,7 @@ CG Viz 是一个基于 Vue 3、TypeScript、Vite、SVG、p5.js、Three.js 和 Ka
   - 页面定义和教学场景配置。
 - `tests`
   - TypeScript 数学回归测试和 Playwright 端到端测试。
-- `advisor_delivery_materials`
-  - 给导师分阶段发送的中文材料草稿。
+
 
 ## 安装依赖
 
@@ -125,4 +124,4 @@ npm run test:e2e
 
 - 一点透视投影和 3D Clipping 页面采用列向量记法以及 OpenGL/WebGL 风格约定。
 - Clipping 模块重点展示 perspective divide 之前的视锥体裁剪。
-- `advisor_delivery_materials` 中的材料用于和导师阶段性沟通，不属于程序运行所必需的源代码。
+
